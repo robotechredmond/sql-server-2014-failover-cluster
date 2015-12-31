@@ -1,49 +1,51 @@
 ﻿{
   "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
   "contentVersion": "1.0.0.0",
+
   "parameters": {
 
     "vmNamePrefix": {
       "type": "string",
       "metadata": {
-        "description": "The Prefix of the VM Name"
-      },
-      "defaultValue": "SqlWitnessVM"
+        "description": "Unique Prefix for each VM Name"
+      }
     },
+
     "availabilitySetName": {
       "type": "string",
       "metadata": {
-        "description": "The Available Set Name"
-      },
-      "defaultValue": "SqlWitnessAvailableSet"
+        "description": "Name of Availability Set for VM"
+      }
     },
 
-    "windowsImagePublisher": {
+    "vmImagePublisher": {
       "type": "string",
       "metadata": {
-        "description": "The Publisher of Windows Image"
+        "description": "VM Image Publisher"
       },
       "defaultValue": "MicrosoftWindowsServer"
     },
-    "windowsImageOffer": {
+
+    "vmImageOffer": {
       "type": "string",
       "metadata": {
-        "description": "The offer of Windows Image"
+        "description": "VM Image Offer"
       },
       "defaultValue": "WindowsServer"
     },
-    "windowsImageSKU": {
+
+    "vmImageSKU": {
       "type": "string",
       "metadata": {
-        "description": "The SKU Name of Windows Image"
+        "description": "VM Image SKU"
       },
       "defaultValue": "2012-R2-Datacenter"
     },
 
-    "windowsImageVersion": {
+    "vmImageVersion": {
       "type": "string",
       "metadata": {
-        "description": "The Version of Windows Image"
+        "description": "VM Image Version"
       },
       "defaultValue": "latest"
     },
@@ -51,7 +53,7 @@
     "storageAccount": {
       "type": "string",
       "metadata": {
-        "description": "The Storage Account Name"
+        "description": "Storage Account Name for VM disks"
       }
     },
 
@@ -64,21 +66,21 @@
         "Premium_LRS"
       ],
       "metadata": {
-        "description": "The type of the Storage Account created"
-      },
-      "defaultValue": "Standard_LRS"
+        "description": "Storage Account Type for VM disks"
+      }
     },
+
     "adminUsername": {
       "type": "string",
       "metadata": {
-        "description": "The name of the Administrator of the new VMs and Domain"
-      },
-      "defaultValue": "sqlAdministrator"
+        "description": "Admin username for VMs and AD domain"
+      }
     },
+
     "adminPassword": {
       "type": "securestring",
       "metadata": {
-        "description": "The password for the Administrator account of the new VMs and Domain"
+        "description": "Admin password for VMs and Domain"
       }
     },
 
@@ -97,10 +99,15 @@
         "Southeast Asia",
         "Japan East",
         "Japan West",
-        "Southeast Asia"
+        "Brazil South",
+        "Australia East",
+        "Australia Southeast",
+        "Central India",
+        "South India",
+        "West India"
       ],
       "metadata": {
-        "description": "The region to deploy the resources into"
+        "description": "Azure Region in which to deploy resources"
       }
     },
 
@@ -125,35 +132,47 @@
         "Standard_DS14"
       ],
       "metadata": {
-        "description": "The size of the AD VMs Created"
-      },
-      "defaultValue": "Standard_D1"
+        "description": "Size of VM instance"
+      }
     },
 
     "subnetUri": {
       "type": "string",
       "metadata": {
-        "description": "the reference to the subnet"
+        "description": "Subnet ID for NICs"
       }
     },
 
     "DataDiskSize": {
       "type": "int",
       "metadata": {
-        "description": "The address of Primary AD"
+        "description": "VM Data Disk size in Gb"
       },
       "defaultValue": 128
     }
+
   },
+
   "variables": {
-    "sqlWitnessNicName": "SqlWitnessMachine-Nic-0",
+
+    "apiVersion": "2015-01-01",
+    "apiVersionNetworks": "2015-06-15",
+    "apiVersionVirtualMachines": "2015-06-15",
+    "apiVersionVMExtensions": "2015-06-15",
+    "apiVersionStorage": "2015-06-15",
+
+    "sqlWitnessVMName": "[concat(parameters('vmNamePrefix'),'0')]",
+    "sqlWitnessNicName": "[concat(variables('sqlWitnessVMName'),'-nic0')]",
+
     "vmContainerName": "vhds"
+
   },
+
   "resources": [
     {
       "type": "Microsoft.Storage/storageAccounts",
       "name": "[parameters('storageAccount')]",
-      "apiVersion": "2015-05-01-preview",
+      "apiVersion": "[variables('apiVersionStorage')]",
       "location": "[parameters('location')]",
       "properties": {
         "accountType": "[parameters('storageAccountType')]"
@@ -165,7 +184,7 @@
       "location": "[parameters('location')]",
       "dependsOn": [
       ],
-      "apiVersion": "2015-05-01-preview",
+      "apiVersion": "[variables('apiVersionNetworks')]",
       "properties": {
         "ipConfigurations": [
           {
@@ -181,9 +200,9 @@
       }
     },
     {
-      "apiVersion": "2015-05-01-preview",
+      "apiVersion": "[variables('apiVersionVirtualMachines')]",
       "type": "Microsoft.Compute/virtualMachines",
-      "name": "[concat(parameters('vmNamePrefix'), '0')]",
+      "name": "[variables('sqlWitnessVMName')]",
       "location": "[parameters('location')]",
       "dependsOn": [
         "[resourceId('Microsoft.Storage/storageAccounts',parameters('storageAccount'))]",
@@ -197,21 +216,21 @@
           "id": "[resourceId('Microsoft.Compute/availabilitySets', parameters('availabilitySetName'))]"
         },
         "osProfile": {
-          "computerName": "[concat(parameters('vmNamePrefix'), '0')]",
+          "computerName": "[variables('sqlWitnessVMName')]",
           "adminUsername": "[parameters('adminUsername')]",
           "adminPassword": "[parameters('adminPassword')]"
         },
         "storageProfile": {
           "imageReference": {
-            "publisher": "[parameters('windowsImagePublisher')]",
-            "offer": "[parameters('windowsImageOffer')]",
-            "sku": "[parameters('windowsImageSKU')]",
-            "version": "[parameters('windowsImageVersion')]"
+            "publisher": "[parameters('vmImagePublisher')]",
+            "offer": "[parameters('vmImageOffer')]",
+            "sku": "[parameters('vmImageSKU')]",
+            "version": "[parameters('vmImageVersion')]"
           },
           "osDisk": {
             "name": "osdisk",
             "vhd": {
-              "uri": "[concat('http://',parameters('storageAccount'),'.blob.core.windows.net/',variables('vmContainerName'),'/', parameters('vmNamePrefix'), '0','-osdisk.vhd')]"
+              "uri": "[concat('http://',parameters('storageAccount'),'.blob.core.windows.net/',variables('vmContainerName'),'/', variables('sqlWitnessVMName'),'-osdisk.vhd')]"
             },
             "caching": "ReadWrite",
             "createOption": "FromImage"
@@ -219,9 +238,9 @@
           "dataDisks": [
             {
               "vhd": {
-                "uri": "[concat('http://',parameters('storageAccount'),'.blob.core.windows.net/',variables('vmContainerName'),'/', parameters('vmNamePrefix'), '0','-data-1.vhd')]"
+                "uri": "[concat('http://',parameters('storageAccount'),'.blob.core.windows.net/',variables('vmContainerName'),'/', variables('sqlWitnessVMName'), '-data-1.vhd')]"
               },
-              "name": "[concat(parameters('vmNamePrefix'), '0','-data-disk1')]",
+              "name": "[concat(variables('sqlWitnessVMName'), '-data-disk1')]",
               "caching": "None",
               "createOption": "empty",
               "diskSizeGB": "[parameters('DataDiskSize')]",

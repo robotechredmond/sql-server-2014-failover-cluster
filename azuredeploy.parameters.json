@@ -2,29 +2,69 @@
   "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
   "contentVersion": "1.0.0.0",
   "parameters": {
-    "newStorageAccountNamePrefix": {
-      "value": "sqlsa#####"
+
+    "sqlClusterPrefix": {
+      "value": "GEN-UNIQUE-8"
     },
 
-    "vmNamePrefix": {
-      "value": "vm#####"
+    "storageAccountType": {
+      "value": "Standard_LRS"
     },
 
-     "domainName": {
+    "sqlVMSize": {
+      "value": "Standard_D3"
+    },
+
+    "sqlWitnessVMSize": {
+      "value": "Standard_D1"
+    },
+
+     "existingDomainName": {
       "value": "contoso.com"
     },
 
-    "dnsPrefix": {
-      "value": "c#####"
+     "existingAdPDCVMName": {
+      "value": "vmad01"
     },
-    "location": {
-      "value": "East US 2"
+
+     "existingPrimaryAdIpAddress": {
+      "value": "10.0.0.4"
     },
+
+     "existingSecondaryAdIpAddress": {
+      "value": "10.0.0.5"
+    },
+
+     "sqlLBIPAddress": {
+      "value": "10.0.0.10"
+    },
+
+    "existingVirtualNetworkId": {
+      "value": "/subscriptions/..."
+    },
+
+    "existingSqlSubnetName": {
+      "value": "default"
+    },
+
+    "adminUsername": {
+      "value": "AzureAdmin"
+    },
+
     "adminPassword": {
-      "value": "P!1#####"
+      "value": "GEN-PASSWORD"
     },
+
+    "sqlServerServiceAccountUserName": {
+      "value": "sqlservice"
+    },
+
     "sqlServerServiceAccountPassword": {
-      "value": "P!1#####"
+      "value": "GEN-PASSWORD"
+    },
+
+    "location": {
+      "value": "Southeast Asia"
     }
   }
 }
